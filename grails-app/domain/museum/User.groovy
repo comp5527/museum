@@ -7,9 +7,9 @@ class User {
 	String emailAddress
 	String userName
 	String password
-	List<DeviceTokenAsso> deviceTokenAssos
+	//List<DeviceTokenAsso> deviceTokenAssos
 	
-	//static hasMany = [deviceTokenAssos: DeviceTokenAsso]
+	static hasMany = [deviceTokenAssos: DeviceTokenAsso]
 	
 	static mapping = {
 		//Collection in Mongodb is to Table in relational world
@@ -18,7 +18,7 @@ class User {
 		//attr in Mongodb is to column in relational world
 		userId attr: "_id"
 		
-		deviceTokenAssos lazy:true
+		hasMany lazy:true
 	}
 	static constraints = {
 		userId nullable: true

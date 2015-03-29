@@ -8,10 +8,11 @@ class ExhibitTopic {
 	Date clientSideCreationDate
 	Date creationDate
 	User createdBy
-	List<ExhibitComment> exhibitComments
+	//List<ExhibitComment> exhibitComments
 	
 	//Long exhibit_id
 	static belongsTo = [exhibit: Exhibit]
+	static hasMany = [exhibitComments: ExhibitComment]
 	
 	static mapping = {
 		//Collection in Mongodb is to Table in relational world
@@ -22,7 +23,7 @@ class ExhibitTopic {
 		
 		creation_date defaultValue: "now()"
 		
-		exhibitComments lazy: true
+		hasMany lazy: true
 	}
 	
 	static constraints = {

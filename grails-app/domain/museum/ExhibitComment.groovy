@@ -14,6 +14,7 @@ class ExhibitComment {
 	
 	//Long exhibit_topic_id
 	static belongsTo = [exhibitTopic: ExhibitTopic]
+	static hasMany = [replyComments: ExhibitComment]
 	
 	static mapping = {
 		//Collection in Mongodb is to Table in relational world
@@ -24,6 +25,7 @@ class ExhibitComment {
 		
 		creationDate defaultValue: "now()"
 		
+		replyComments lazy: true
 	}
 	
 	static constraints = {

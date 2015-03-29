@@ -1,8 +1,10 @@
 package museum
 
 class ExhibitImage {
-	Long exhibitId
+//	Long exhibitId
 	byte[] exhibitImage
+	
+	static belongsTo = [exhibit: Exhibit]
 	
 	static mapping = {
 		//Collection in Mongodb is to Table in relational world
