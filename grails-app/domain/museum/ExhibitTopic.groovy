@@ -23,7 +23,7 @@ class ExhibitTopic {
 		
 		creation_date defaultValue: "now()"
 		
-		hasMany lazy: true
+		exhibitComments lazy: true
 	}
 	
 	static constraints = {

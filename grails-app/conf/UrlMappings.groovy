@@ -15,6 +15,10 @@ class UrlMappings {
 		
 		"/Logout"(controller: "user", action: "logout")
 		
+		"/AddExhibitInfo"(controller: "exhibit", action: "addExhibitInfo")
+		
+		"/SetExhibitImage"(controller: "exhibit", action: "setExhibitImage")
+		
 		"/GetExhibitInfo"(controller: "exhibit", action: "getExhibitInfo")
 		
 		"/GetExhibitImage"(controller: "exhibit", action: "getExhibitImage")

@@ -18,7 +18,7 @@ class User {
 		//attr in Mongodb is to column in relational world
 		userId attr: "_id"
 		
-		hasMany lazy:true
+		deviceTokenAssos lazy:true
 	}
 	static constraints = {
 		userId nullable: true

@@ -22,6 +22,7 @@ class ExhibitComment {
 		
 		//attr in Mongodb is to column in relational world
 		exhibitCommentId attr: "_id"
+		timestamp attr: "version"
 		
 		creationDate defaultValue: "now()"
 		

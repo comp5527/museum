@@ -19,12 +19,12 @@ class Exhibit {
 		//attr in Mongodb is to column in relational world
 		exhibitId attr: "_id"
 		
-		hasMany lazy: true
-		hasOne lazy: true
+		exhibitTopics lazy: true
+		exhibitImage lazy: true
 	}
 	
 	static constraints = {
-		exhibitId nullable: true
+		//exhibitId nullable: true
 	}
 	
 	static mapWith = "mongo"
