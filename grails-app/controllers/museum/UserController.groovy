@@ -84,12 +84,14 @@ class UserController {
 			
 			def deviceTokenAsso = user.deviceTokenAssos.find { it.deviceToken == params.deviceToken }
 			
-			user.removeFromDeviceTokenAssos(deviceTokenAsso)
-			
-			def result = deviceTokenAsso.delete()
-			//save user
-			if( !result ) {
-				user.errors.each { println it }
+			if(deviceTokenAsso){
+				user.removeFromDeviceTokenAssos(deviceTokenAsso)
+				
+				def result = deviceTokenAsso.delete()
+				//save user
+				if( !result ) {
+					user.errors.each { println it }
+				}
 			}
 			
 		}
