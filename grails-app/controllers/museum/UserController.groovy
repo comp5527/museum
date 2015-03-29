@@ -8,18 +8,18 @@ class UserController {
 
 	def userRegistration(){
 		//check is emailAddress exist
-		def user = new User(emailAddress: params.emailAddress)
-
-		def existingUser = User.find(user)
-
+		def existingUser = User.findByEmailAddress(params.emailAddress)
+		
+		def user
 		def msg = ""
 		def result
 		if( existingUser ){
 			msg = "User already existed."
+		} else if (params.emailAddress == null || params.userName == null || params.password == null) {
+			msg = "Invalid Parameters."		
 		} else {
 			//create user domain object
-			user.userName = params.userName
-			user.password = HashUtils.generateMD5(params.password)
+			user = new User(emailAddress: params.emailAddress, userName : params.userName, password : HashUtils.generateMD5(params.password))
 
 			//save user
 			result = user.save()
@@ -41,15 +41,21 @@ class UserController {
 	}
 
 	def login(){
-
-		def sampleUser = new User(emailAddress: params.emailAddress,
-			password: HashUtils.generateMD5(params.password))
-		def user = User.find(sampleUser)
+		def msg
+		def user
+		if (params.emailAddress == null || params.password == null) {
+			msg = "Invalid Parameters."
+		}else{
+			def sampleUser = new User(emailAddress: params.emailAddress,
+				password: HashUtils.generateMD5(params.password))
+			user = User.find(sampleUser)
+		}
 
 		//define response data
 		def responseData = [
 			'data': user ? ['userId': user.id] : [],
-			'status': user ? "SUCCESS" : "FAIL"
+			'status': user ? "SUCCESS" : "FAIL",
+			'msg' : msg
 		]
 		render responseData as JSON
 	}	
