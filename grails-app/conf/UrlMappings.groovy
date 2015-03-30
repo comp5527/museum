@@ -17,6 +17,8 @@ class UrlMappings {
 		
 		"/AddExhibitInfo"(controller: "exhibit", action: "addExhibitInfo")
 		
+		"/UploadImage"(view:"/uploadImage")
+				
 		"/SetExhibitImage"(controller: "exhibit", action: "setExhibitImage")
 		
 		"/GetExhibitInfo"(controller: "exhibit", action: "getExhibitInfo")

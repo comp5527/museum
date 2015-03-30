@@ -3,6 +3,7 @@ package museum
 class ExhibitImage {
 //	Long exhibitId
 	byte[] exhibitImage
+	String contentType
 	
 	static belongsTo = [exhibit: Exhibit]
 	

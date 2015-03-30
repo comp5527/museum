@@ -41,10 +41,47 @@ class ExhibitController {
 		render responseData as JSON
 	}
 	
+	private static final okcontents = ['image/png', 'image/jpeg', 'image/gif']
 	//for internal use
-	def setExhibitImage(){
+	def setExhibitImage(){		
+		// Get the avatar file from the multi-part request
+		def f = request.getFile('image')
 		
+		// List of OK mime-types
+		if (!okcontents.contains(f.getContentType())) {
+			flash.message = "Image must be one of: ${okcontents}"
+			render(view:'/uploadImage')
+			return
+		}
+		
+		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		
+		if(!exhibit){
+			flash.message = "Exhibit not found."
+			render(view:'/uploadImage')
+			return
+		}else{
+			// Save the image and mime type
+			if(exhibit.exhibitImage == null)
+				exhibit.exhibitImage = new ExhibitImage()
+			
+			exhibit.exhibitImage.exhibitImage = f.bytes
+			exhibit.exhibitImage.contentType = f.getContentType()
+			
+			log.info("File uploaded: $exhibit.exhibitImage.exhibitImage")
+			
+			// Validation works, will check if the image is too big
+			if (!exhibit.save()) {
+				flash.message = "Save Fail"
+				render(view:'/uploadImage')
+				return
+			}
+			flash.message = "Image (${exhibit.exhibitImage.exhibitImage.size()} bytes) uploaded."
+			render(view:'/uploadImage')
+		}
 	}
+	
+	
 	
 	
 	def getExhibitInfo(){
@@ -62,7 +99,18 @@ class ExhibitController {
 	}
 	
 	def getExhibitImage(){
-		print params.exhibitId;
+		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		
+		def avatarUser = User.get(params.id)
+		if (!exhibit || !exhibit.exhibitImage || !exhibit.exhibitImage.exhibitImage || !exhibit.exhibitImage.contentType) {
+		  response.sendError(404)
+		  return
+		}
+		response.contentType = exhibit.exhibitImage.contentType
+		response.contentLength = exhibit.exhibitImage.exhibitImage.size()
+		OutputStream out = response.outputStream
+		out.write(exhibit.exhibitImage.exhibitImage)
+		out.close()
 	}
 	
 	def getExhibitTopicList(){
