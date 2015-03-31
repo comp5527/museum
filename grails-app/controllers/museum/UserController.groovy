@@ -1,5 +1,4 @@
 package museum
-
 import grails.converters.JSON
 
 class UserController {
