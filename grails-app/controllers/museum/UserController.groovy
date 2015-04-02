@@ -66,7 +66,7 @@ class UserController {
 			def deviceTokenAsso = user.deviceTokenAssos.find {it.deviceToken == params.deviceToken} 
 			if( !deviceTokenAsso ){
 				deviceTokenAsso = new DeviceTokenAsso(deviceToken: params.deviceToken)
-				def result = user.addToDeviceTokenAssos(deviceTokenAsso).save()			
+				def result = user.addToDeviceTokenAssos(deviceTokenAsso).save()	
 				//save user
 				if( !result ) {
 					user.errors.each { println it }

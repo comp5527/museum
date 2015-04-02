@@ -31,6 +31,9 @@ class ExhibitComment {
 	
 	static constraints = {
 		exhibitCommentId nullable: true
+		creationDate nullable: true
+		modifiedDate nullable: true
+		timestamp nullable: true
 	}
 	
 	static mapWith = "mongo"

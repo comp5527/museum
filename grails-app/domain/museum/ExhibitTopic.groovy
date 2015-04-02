@@ -21,13 +21,14 @@ class ExhibitTopic {
 		//attr in Mongodb is to column in relational world
 		exhibitTopicId attr: "_id"
 		
-		creation_date defaultValue: "now()"
+		creationDate defaultValue: "now()"
 		
 		exhibitComments lazy: true
 	}
 	
 	static constraints = {
 		exhibitTopicId nullable: true
+		creationDate nullable: true
 	}
 	
 	static mapWith = "mongo"

@@ -17,10 +17,13 @@ class ExhibitController {
 		def result
 		if( exhibit ){ 
 			msg = "Exhibit ID already in use."
+		}else if (params.exhibitName == null || params.exhibitDescription == null) {
+			msg = "Invalid Parameters."
 		} else {
 			//create exhibit domain object
-			exhibit.exhibitName = params.exhibitName
-			exhibit.exhibitDescription = params.exhibitDescription
+		 	exhibit = new Exhibit(exhibitId: params.exhibitId,
+								 exhibitName: params.exhibitName, 
+								 exhibitDescription: params.exhibitDescription)
 
 			//save exhibit
 			result = exhibit.save()
@@ -86,6 +89,11 @@ class ExhibitController {
 	
 	def getExhibitInfo(){
 		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		
+		def msg = ""
+		if( exhibit == null){ 
+			msg = "Exhibit ID not found."
+		}
 		//define response data
 		def responseData = [
 			'data': exhibit ? [
@@ -93,7 +101,8 @@ class ExhibitController {
 					'exhibitName': exhibit.exhibitName, 
 					'exhibitDescription': exhibit.exhibitDescription
 				] : [],
-			'status': exhibit ? "SUCCESS" : "FAIL"
+			'status': exhibit ? "SUCCESS" : "FAIL",
+			"msg": msg
 		]
 		render responseData as JSON
 	}
@@ -101,9 +110,12 @@ class ExhibitController {
 	def getExhibitImage(){
 		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
 		
-		def avatarUser = User.get(params.id)
-		if (!exhibit || !exhibit.exhibitImage || !exhibit.exhibitImage.exhibitImage || !exhibit.exhibitImage.contentType) {
-		  response.sendError(404)
+		if (!exhibit || !exhibit.exhibitImage || !exhibit.exhibitImage.exhibitImage || !exhibit.exhibitImage.contentType) {		  
+		  def responseData = [
+			  'status': "FAIL",
+			  'msg' : "Image not found."
+		  ]
+		  render responseData as JSON
 		  return
 		}
 		response.contentType = exhibit.exhibitImage.contentType
@@ -116,9 +128,21 @@ class ExhibitController {
 	def getExhibitTopicList(){
 		
 		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		
+		def toRenderData = []
+		if(exhibit != null && exhibit.exhibitTopics != null){
+			toRenderData = exhibit.exhibitTopics.collect { exhibitTopic->
+		        [
+					"exhibitTopicId": exhibitTopic.exhibitTopicId, 
+					"exhibitTopicName": exhibitTopic.exhibitTopicName,
+					"creationDate": exhibitTopic.clientSideCreationDate,
+					"createdBy": exhibitTopic.createdBy.userId
+				]
+		    }
+		}
 		//define response data
 		def responseData = [
-			'data': exhibit & exhibit.exhibitTopics ? exhibit.exhibitTopics : [],
+			'data': toRenderData,
 			'status': exhibit ? "SUCCESS" : "FAIL"
 		]
 		render responseData as JSON
@@ -127,9 +151,39 @@ class ExhibitController {
 	def getExhibitComments(){
 		
 		def exhibitTopic = ExhibitTopic.findByExhibitTopicId(params.exhibitTopicId)
+		
+		def root
+		def parentval
+		def returnList = []
+		def childNodes = []
+		if(exhibitTopic != null ){
+			root = ExhibitComment.withCriteria{
+							eq('exhibitTopic.', exhibitTopic )
+						}
+			
+			{ inroot ->
+				inroot.each {
+					returnList << [
+						"commentId": it.exhibitCommentId,
+						"replyCommentId": (parentval)?parentval.exhibitCommentId:"",
+						"content": it.commentContent,
+						"modifiedDate": it.clientSideModifiedDate,
+						"modifiedBy": it.createdBy.userId, // modifiedBy = createdBy
+						"timestamp": it.timestamp
+					]
+					parentval = it
+					childNodes = ExhibitComment.withCriteria {
+						eq('exhibitTopic', parentval )
+					}
+				}
+				if(childNodes)
+					call(childNodes)
+			}(root)
+		    
+		}
 		//define response data
 		def responseData = [
-			'data': exhibitTopic & exhibitTopic.exhibitComments ? exhibit.exhibitComments : [],
+			'data': returnList,
 			'status': exhibitTopic ? "SUCCESS" : "FAIL"
 		]
 		render responseData as JSON
@@ -140,6 +194,7 @@ class ExhibitController {
 		
 		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
 		def user = User.findByUserId(params.userId)
+		def creationTime = params.date('creationTime', 'yyyyMMddHHmmss')
 		def exhibitTopic
 		
 		def msg = ""
@@ -152,17 +207,20 @@ class ExhibitController {
 			//create exhibit topic domain object
 			def exhibitComment = new ExhibitComment(commentContent: params.commentContent, 
 				createdBy: user, 
-				clientSideCreationDate: params.creationTime, 
-				clientSideModifiedDate: params.creationTime
+				clientSideCreationDate: creationTime, 
+				clientSideModifiedDate: creationTime
 				)
 			
+			
 			exhibitTopic = new ExhibitTopic(exhibitTopicName: params.topicName,
-				clientSideCreationDate: params.creationTime,
+				clientSideCreationDate: creationTime,
 				createdBy: user,
 				exhibitComments: [exhibitComment]
 				)
 			
+			
 			//save Exhibit Topic
+			exhibit.exhibitImage
 			result = exhibit.addToExhibitTopics(exhibitTopic).save()
 			if( !result ) {
 				exhibit.errors.each { println it }

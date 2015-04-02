@@ -14,6 +14,8 @@ class ExhibitImage {
 	}
 	
 	static constraints = {
+		exhibitImage nullable: true
+		contentType nullable: true
 	}
 	
 	static mapWith = "mongo"
