@@ -289,27 +289,26 @@ class ExhibitController {
 		
 		def user = User.findByUserId(params.userId)
 		def exhibitComment = ExhibitComment.findByExhibitCommentId(params.exhibitCommentId)
-		print params.commentContent;
-		print params.updateTime;
-		print params.timestamp;
+		def updateTime = params.date('updateTime', 'yyyyMMddHHmmss')
 		
 		def msg = ""
 		def result
-		if( exhibitComment ){
+		if( exhibitComment == null){
 			msg = "Exhibit Comment not found."
-		}else if( !user ){
+		}else if( user == null){
 			msg = "User not found."
+		}else if(exhibitComment.version != params.timestamp){
+			msg = "Versioning problem found."
 		} else {
 			//save exhibitComment domain object
-			exhibitComment.find {it.timestamp == params.timestamp}
 			exhibitComment.commentContent = params.commentContent
-			exhibitComment.clientSideModifiedDate = params.updateTime
+			exhibitComment.clientSideModifiedDate = updateTime
 
 			result = exhibitComment.save();
 			if( !result ) {
 				exhibitComment.errors.each { println it }
 			} else {
-				msg = "Exhibit Comment had been created."
+				msg = "Exhibit Comment had been updated."
 			}
 
 		}
@@ -317,7 +316,7 @@ class ExhibitController {
 
 		//define response data
 		def responseData = [
-			'data': exhibitComment.belongsTo ? ['exhibitTopicId': exhibitComment.belongsTo.id] : [],
+			'data': exhibitComment.belongsTo ? ['exhibitTopicId': exhibitComment.exhibitTopic.id] : [],
 			'status': result ? "SUCCESS" : "FAIL",
 			'msg' : msg
 		]

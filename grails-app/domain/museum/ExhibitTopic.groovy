@@ -14,14 +14,16 @@ class ExhibitTopic {
 	static belongsTo = [exhibit: Exhibit]
 	static hasMany = [exhibitComments: ExhibitComment]
 	
+	def beforeInsert() {
+		creationDate = new Date()
+	}
+
 	static mapping = {
 		//Collection in Mongodb is to Table in relational world
 		collection "exhibit_topic"
 		
 		//attr in Mongodb is to column in relational world
 		exhibitTopicId attr: "_id"
-		
-		creationDate defaultValue: "now()"
 		
 		exhibitComments lazy: true
 	}
