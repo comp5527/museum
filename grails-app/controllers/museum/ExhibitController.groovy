@@ -157,28 +157,22 @@ class ExhibitController {
 		def returnList = []
 		def childNodes = []
 		if(exhibitTopic != null ){
-			root = ExhibitComment.withCriteria{
-							eq('exhibitTopic.', exhibitTopic )
-						}
-			
 			{ inroot ->
 				inroot.each {
-					returnList << [
-						"commentId": it.exhibitCommentId,
-						"replyCommentId": (parentval)?parentval.exhibitCommentId:"",
-						"content": it.commentContent,
-						"modifiedDate": it.clientSideModifiedDate,
-						"modifiedBy": it.createdBy.userId, // modifiedBy = createdBy
-						"timestamp": it.timestamp
-					]
-					parentval = it
-					childNodes = ExhibitComment.withCriteria {
-						eq('exhibitTopic', parentval )
-					}
+						returnList << [
+							"commentId": it.exhibitCommentId,
+							"replyCommentId": (parentval)?parentval.exhibitCommentId:"",
+							"content": it.commentContent,
+							"modifiedDate": it.clientSideModifiedDate,
+							"modifiedBy": it.createdBy.userId, // modifiedBy = createdBy
+							"timestamp": it.timestamp
+						]
+						parentval = it
+						childNodes = parentval.replyComments
 				}
-				if(childNodes)
-					call(childNodes)
-			}(root)
+//				if(childNodes)
+//					call(childNodes)
+			}(exhibitTopic.exhibitComments )
 		    
 		}
 		//define response data
@@ -199,25 +193,23 @@ class ExhibitController {
 		
 		def msg = ""
 		def result
-		if( !exhibit ){
+		if( exhibit == null){
 			msg = "Exhibit not found."
-		}else if( !user ){
+		}else if( user == null){
 			msg = "User not found."
 		} else {
 			//create exhibit topic domain object
-			def exhibitComment = new ExhibitComment(commentContent: params.commentContent, 
-				createdBy: user, 
-				clientSideCreationDate: creationTime, 
-				clientSideModifiedDate: creationTime
-				)
-			
 			
 			exhibitTopic = new ExhibitTopic(exhibitTopicName: params.topicName,
 				clientSideCreationDate: creationTime,
-				createdBy: user,
-				exhibitComments: [exhibitComment]
+				createdBy: user
 				)
 			
+			exhibitTopic.addToExhibitComments(new ExhibitComment(commentContent: params.commentContent, 
+				createdBy: user, 
+				clientSideCreationDate: creationTime, 
+				clientSideModifiedDate: creationTime
+				))
 			
 			//save Exhibit Topic
 			exhibit.exhibitImage
@@ -245,6 +237,7 @@ class ExhibitController {
 		//check is exhibitId in use
 		def exhibitTopic = ExhibitTopic.findByExhibitTopicId(params.exhibitTopicId)
 		def user = User.findByUserId(params.userId)
+		def insertTime = params.date('insertTime', 'yyyyMMddHHmmss')
 		def replyComment
 		if (params.replyCommentId != null)
 			replyComment = ExhibitComment.findByExhibitCommentId(params.replyCommentId)
@@ -252,36 +245,31 @@ class ExhibitController {
 		
 		def msg = ""
 		def result
-		if( exhibitTopic ){
+		if( exhibitTopic == null){
 			msg = "Exhibit Topic not found."
-		}else if( !user ){
+		}else if( user == null){
 			msg = "User not found."
-		}else if( params.replyCommentId != null && replyComment ){
+		}else if( params.replyCommentId != null && replyComment == null){
 			msg = "Reply Comment not found."
 		} else {
 			//create exhibitComment domain object
 			def exhibitComment = new ExhibitComment(commentContent: params.commentContent,
-					replyComment: replyComment,
 					createdBy: user,
-					clientSideCreationDate: params.insertTime,
-					clientSideModifiedDate: params.insertTime
+					clientSideCreationDate: insertTime,
+					clientSideModifiedDate: insertTime
 				)
+			
 			
 			//save Comment
 			if(replyComment){
-				result = replyComment.addToReplyComments(exhibitComment).save()
-				if( !result ) {
-					replyComment.errors.each { println it }
-				} else {
-					msg = "Exhibit had been created."
-				}
+				exhibitComment.addToReplyComments(replyComment)
+			}
+			
+			result = exhibitTopic.addToExhibitComments(exhibitComment).save()
+			if( !result ) {
+				exhibitTopic.errors.each { println it }
 			} else {
-				result = exhibitTopic.addToExhibitComments(exhibitComment).save()
-				if( !result ) {
-					exhibitTopic.errors.each { println it }
-				} else {
-					msg = "Exhibit had been created."
-				}
+				msg = "Exhibit had been created."
 			}
 			
 		}
