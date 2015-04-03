@@ -5,7 +5,10 @@ import java.util.List;
 import grails.converters.JSON
 
 class ExhibitController {
-
+	
+	def androidGcmService
+	def grailsApplication
+	
 	def index() { }
 	
 	//for internal use
@@ -152,7 +155,6 @@ class ExhibitController {
 		
 		def exhibitTopic = ExhibitTopic.findByExhibitTopicId(params.exhibitTopicId)
 		
-		def root
 		def parentval
 		def returnList = []
 		def childNodes = []
@@ -261,7 +263,7 @@ class ExhibitController {
 			
 			
 			//save Comment
-			if(replyComment){
+			if(replyComment != null){
 				exhibitComment.addToReplyComments(replyComment)
 			}
 			
@@ -270,6 +272,22 @@ class ExhibitController {
 				exhibitTopic.errors.each { println it }
 			} else {
 				msg = "Exhibit had been created."
+				
+				if(replyComment != null){//push notification to reply target
+					replyComment.createdBy.deviceTokenAssos
+					def deviceTokens = replyComment.createdBy.deviceTokenAssos.collect { deviceTokenAsso->
+					        [deviceTokenAsso.deviceToken]
+					    }
+					if(deviceTokens.size > 0)
+						sendMessage("You have a reply comment.", deviceTokens)
+				}else{//push notification to topic creator
+					exhibitTopic.createdBy.deviceTokenAssos
+					def deviceTokens = exhibitTopic.createdBy.deviceTokenAssos.collect { deviceTokenAsso->
+							[deviceTokenAsso.deviceToken]
+						}
+					if(deviceTokens.size > 0)
+						sendMessage("You have a reply comment.", deviceTokens)
+				}
 			}
 			
 		}
@@ -323,4 +341,9 @@ class ExhibitController {
 		render responseData as JSON
 	}
 	
+	
+	def sendMessage(String msg, List<String> deviceTokens) {
+		def messages = ["msg": msg]
+		return androidGcmService.sendMulticastInstantMessage(messages, deviceTokens)
+	}
 }

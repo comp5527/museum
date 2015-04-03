@@ -115,3 +115,8 @@ log4j.main = {
            'org.hibernate',
            'net.sf.ehcache.hibernate'
 }
+
+android.gcm.api.key = 'AIzaSyCoasxQNFO167U5oHB3wufVsBFWadVHBNQ'
+android.gcm.time.to.live=1419200
+android.gcm.delay.'while'.idle=false
+android.gcm.retries=3
