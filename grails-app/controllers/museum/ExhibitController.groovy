@@ -14,17 +14,18 @@ class ExhibitController {
 	//for internal use
 	def addExhibitInfo(){
 		//check is exhibitId in use
-		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		def exhibit = Exhibit.findByNfcId(params.nfcId)
 		
 		def msg = ""
 		def result
-		if( exhibit ){ 
+		if( exhibit != null){ 
 			msg = "Exhibit ID already in use."
 		}else if (params.exhibitName == null || params.exhibitDescription == null) {
 			msg = "Invalid Parameters."
 		} else {
 			//create exhibit domain object
-		 	exhibit = new Exhibit(exhibitId: params.exhibitId,
+		 	exhibit = new Exhibit(
+				 				 nfcId: params.nfcId,
 								 exhibitName: params.exhibitName, 
 								 exhibitDescription: params.exhibitDescription)
 
@@ -41,6 +42,52 @@ class ExhibitController {
 		//define response data
 		def responseData = [
 			'data': exhibit ? ['exhibitId': exhibit.id] : [],
+			'status': result ? "SUCCESS" : "FAIL",
+			'msg' : msg
+		]
+		render responseData as JSON
+	}
+	
+	//for internal use
+	def updateExhibitInfo(){
+		//check is exhibitId in use
+		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		
+		
+		def msg = ""
+		def result
+		if( exhibit == null ){
+			msg = "Exhibit not found."
+		} else {
+			//create exhibit domain object
+			if (params.exhibitName != null) 
+				exhibit.exhibitName = params.exhibitName 
+			
+			if(params.exhibitDescription != null) 
+				exhibit.exhibitDescription = params.exhibitDescription
+				
+			if (params.nfcId != null){				
+				def exhibitNfc = Exhibit.findByNfcId(params.nfcId)
+				
+				if(exhibitNfc != null)
+					msg = "This NFC ID is in use."					
+				else
+					exhibit.nfcId = params.nfcId
+			}	
+
+			//save exhibit
+			result = exhibit.save()
+			if( !result ) {
+				exhibit.errors.each { println it }
+			} else {
+				msg = "Exhibit had been updated."
+			}
+		}
+
+
+		//define response data
+		def responseData = [
+			'data': exhibit ? ['exhibitId': exhibit.exhibitId] : [],
 			'status': result ? "SUCCESS" : "FAIL",
 			'msg' : msg
 		]
@@ -91,7 +138,12 @@ class ExhibitController {
 	
 	
 	def getExhibitInfo(){
-		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		def exhibit
+		 
+		if(params.exhibitId != null)
+			exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		else if(params.nfcId != null)
+			exhibit = Exhibit.findByNfcId(params.nfcId)
 		
 		def msg = ""
 		if( exhibit == null){ 
@@ -111,7 +163,12 @@ class ExhibitController {
 	}
 	
 	def getExhibitImage(){
-		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		def exhibit
+		 
+		if(params.exhibitId != null)
+			exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		else if(params.nfcId != null)
+			exhibit = Exhibit.findByNfcId(params.nfcId)
 		
 		if (!exhibit || !exhibit.exhibitImage || !exhibit.exhibitImage.exhibitImage || !exhibit.exhibitImage.contentType) {		  
 		  def responseData = [
@@ -130,7 +187,13 @@ class ExhibitController {
 	
 	def getExhibitTopicList(){
 		
-		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		def exhibit
+		
+		if(params.exhibitId != null)
+			exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		else if(params.nfcId != null)
+			exhibit = Exhibit.findByNfcId(params.nfcId)
+		
 		
 		def toRenderData = []
 		if(exhibit != null && exhibit.exhibitTopics != null){
@@ -188,7 +251,13 @@ class ExhibitController {
 	
 	def createExhibitTopic(){
 		
-		def exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		def exhibit
+		
+		if(params.exhibitId != null)
+			exhibit = Exhibit.findByExhibitId(params.exhibitId)
+		else if(params.nfcId != null)
+			exhibit = Exhibit.findByNfcId(params.nfcId)
+		
 		def user = User.findByUserId(params.userId)
 		def creationTime = params.date('creationTime', 'yyyyMMddHHmmss')
 		def exhibitTopic

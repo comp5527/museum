@@ -4,6 +4,7 @@ import java.util.List;
 
 class Exhibit {
 	Long exhibitId
+	String nfcId
 	String exhibitName
 	String exhibitDescription
 	//ExhibitImage exhibitImage
@@ -24,6 +25,7 @@ class Exhibit {
 	}
 	
 	static constraints = {
+		exhibitId nullable: true
 		exhibitImage nullable: true
 	}
 	
