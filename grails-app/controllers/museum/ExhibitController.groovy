@@ -343,19 +343,27 @@ class ExhibitController {
 				msg = "Exhibit had been created."
 				
 				if(replyComment != null){//push notification to reply target
-					replyComment.createdBy.deviceTokenAssos
-					def deviceTokens = replyComment.createdBy.deviceTokenAssos.collect { deviceTokenAsso->
-					        [deviceTokenAsso.deviceToken]
-					    }
-					if(deviceTokens.size > 0)
-						sendMessage("You have a reply comment.", deviceTokens)
-				}else{//push notification to topic creator
-					exhibitTopic.createdBy.deviceTokenAssos
-					def deviceTokens = exhibitTopic.createdBy.deviceTokenAssos.collect { deviceTokenAsso->
-							[deviceTokenAsso.deviceToken]
+					if(replyComment.createdBy && replyComment.createdBy.id != user.userId){
+						replyComment.createdBy.deviceTokenAssos
+						def deviceTokens = replyComment.createdBy.deviceTokenAssos.collect { deviceTokenAsso->
+						        [deviceTokenAsso.deviceToken]
+						    }
+						if(deviceTokens.size > 0){
+							def messages = ['msg': msg, 'content': exhibitComment.commentContent, 'sender': exhibitComment.createdBy.userName]
+							sendMessage(messages, deviceTokens)
 						}
-					if(deviceTokens.size > 0)
-						sendMessage("You have a reply comment.", deviceTokens)
+					}
+				}else{//push notification to topic creator
+					if(exhibitTopic.createdBy && exhibitTopic.createdBy.id != user.userId){
+						exhibitTopic.createdBy.deviceTokenAssos
+						def deviceTokens = exhibitTopic.createdBy.deviceTokenAssos.collect { deviceTokenAsso->
+								[deviceTokenAsso.deviceToken]
+							}
+						if(deviceTokens.size > 0){
+							def messages = ['msg': msg, 'content': exhibitComment.commentContent, 'sender': exhibitComment.createdBy.userName]
+							sendMessage(messages, deviceTokens)
+						}
+					}
 				}
 			}
 			
@@ -411,8 +419,7 @@ class ExhibitController {
 	}
 	
 	
-	def sendMessage(String msg, List<String> deviceTokens) {
-		def messages = ["msg": msg]
-		return androidGcmService.sendMulticastInstantMessage(messages, deviceTokens)
+	def sendMessage(Map messages, List<String> deviceTokens) {		
+		return androidGcmService.sendMulticastCollapseMessage("", messages, deviceTokens)
 	}
 }
